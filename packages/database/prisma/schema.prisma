@@ -1,0 +1,220 @@
+// Family Support Platform Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  intakes       Intake[]
+  bookings      Booking[]
+  referrals     Referral[]
+  externalSignals ExternalSignal[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+// Client Intake
+model Intake {
+  id              String    @id @default(uuid())
+  userId          String
+  clientFirstName String
+  clientLastName  String
+  clientEmail     String?
+  clientPhone     String?
+  dateOfBirth     DateTime?
+  address         String?
+  city            String?
+  postcode        String?
+  concerns        String    @db.Text
+  urgencyLevel    Urgency   @default(MEDIUM)
+  status          IntakeStatus @default(PENDING)
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("intakes")
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IntakeStatus {
+  PENDING
+  ASSESSMENT
+  APPROVED
+  REJECTED
+  CLOSED
+}
+
+// Booking Management
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  clientId    String
+  serviceType String
+  date        DateTime
+  time        String
+  duration    Int           @default(60) // minutes
+  status      BookingStatus @default(SCHEDULED)
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// Referral System
+model Referral {
+  id                String         @id @default(uuid())
+  userId            String
+  clientName        String
+  clientEmail       String?
+  clientPhone       String?
+  serviceRequested  String
+  referredTo        String
+  referralDate      DateTime      @default(now())
+  status            ReferralStatus @default(PENDING)
+  responseReceived  Boolean       @default(false)
+  notes             String?       @db.Text
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("referrals")
+}
+
+enum ReferralStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  DECLINED
+  FOLLOW_UP_REQUIRED
+  CLOSED
+}
+
+// External Signals (Lead Discovery)
+model ExternalSignal {
+  id              String           @id @default(uuid())
+  userId          String
+  source          SignalSource
+  platform        String
+  content         String           @db.Text
+  url             String?
+  author          String?
+  publishedAt     DateTime?
+  confidence      Float            @default(0.5)
+  classification  SignalClassification?
+  status          SignalStatus     @default(NEW)
+  processedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("external_signals")
+}
+
+enum SignalSource {
+  REDDIT
+  TWITTER
+  FACEBOOK
+  NEWS
+  FORUM
+  OTHER
+}
+
+enum SignalClassification {
+  FAMILY_NEED
+  HOUSING_CRYISIS
+  FOOD_INSECURITY
+  MENTAL_HEALTH
+  CHILD_WELFARE
+  DOMESTIC_ABUSE
+  FINANCIAL_HELP
+  ELDERLY_CARE
+  DISABILITY_SUPPORT
+  OTHER
+}
+
+enum SignalStatus {
+  NEW
+  REVIEWING
+  APPROVED
+  REJECTED
+  RESPONDED
+  ARCHIVED
+}
+
+// Service Information
+model Service {
+  id              String    @id @default(uuid())
+  name            String
+  description     String    @db.Text
+  category        String
+  contactEmail    String?
+  contactPhone    String?
+  website         String?
+  address         String?
+  city            String?
+  postcode        String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("services")
+}
+
+// Analytics Tracking
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  eventType   String
+  userId      String?
+  metadata    Json?
+  timestamp   DateTime @default(now())
+
+  @@map("analytics_events")
+}

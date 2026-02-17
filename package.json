@@ -1,0 +1,22 @@
+{
+  "name": "family-support-platform",
+  "version": "1.0.0",
+  "description": "UK Family Support Referral Automation Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "prisma:generate": "npm run prisma:generate --workspaces",
+    "prisma:migrate": "npm run prisma:migrate --workspaces",
+    "prisma:push": "npm run prisma:push --workspaces",
+    "prisma:studio": "npm run prisma:studio --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3"
+  }
+}
