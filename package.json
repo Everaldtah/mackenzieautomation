@@ -16,7 +16,7 @@
     "prisma:studio": "npm run prisma:studio --workspaces"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
-    "typescript": "^5.3.3"
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3"
   }
 }

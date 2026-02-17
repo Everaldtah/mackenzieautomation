@@ -50,7 +50,7 @@ export class UsersService {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
-        role: data.role || UserRole.CLIENT,
+        role: data.role || UserRole.USER,
       },
     });
   }

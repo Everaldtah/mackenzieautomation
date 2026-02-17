@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, ReferralStatus, ServiceType } from '@family-support/database';
+import { PrismaClient, ReferralStatus } from '@family-support/database';
 import { CreateReferralDto } from './dto/create-referral.dto';
 import { AutomationService } from '../automation/automation.service';
 
@@ -9,15 +9,16 @@ const prisma = new PrismaClient();
 export class ReferralsService {
   constructor(private automationService: AutomationService) {}
 
-  async create(referrerId: string, data: CreateReferralDto) {
+  async create(userId: string, data: CreateReferralDto) {
     const referral = await prisma.referral.create({
       data: {
-        referrerId,
-        referredEmail: data.referredEmail,
-        referredPhone: data.referredPhone,
-        referredName: data.referredName,
-        serviceType: data.serviceType,
-        message: data.message,
+        userId,
+        clientEmail: data.clientEmail,
+        clientPhone: data.clientPhone,
+        clientName: data.clientName,
+        serviceRequested: data.serviceRequested,
+        referredTo: data.referredTo,
+        notes: data.notes,
         status: ReferralStatus.SENT,
       },
     });
@@ -28,8 +29,8 @@ export class ReferralsService {
         eventType: 'referral_shared',
         referralId: referral.id,
         payload: {
-          referredEmail: data.referredEmail,
-          serviceType: data.serviceType,
+          clientEmail: data.clientEmail,
+          serviceRequested: data.serviceRequested,
         },
       },
     });
@@ -44,14 +45,14 @@ export class ReferralsService {
     page?: number;
     limit?: number;
     status?: ReferralStatus;
-    referrerId?: string;
+    userId?: string;
   }) {
-    const { page = 1, limit = 20, status, referrerId } = options;
+    const { page = 1, limit = 20, status, userId } = options;
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (status) where.status = status;
-    if (referrerId) where.referrerId = referrerId;
+    if (userId) where.userId = userId;
 
     const [referrals, total] = await Promise.all([
       prisma.referral.findMany({
@@ -59,7 +60,7 @@ export class ReferralsService {
         skip,
         take: limit,
         include: {
-          referrer: {
+          user: {
             select: {
               id: true,
               email: true,
@@ -88,7 +89,7 @@ export class ReferralsService {
     return prisma.referral.findUnique({
       where: { id },
       include: {
-        referrer: {
+        user: {
           select: {
             id: true,
             email: true,

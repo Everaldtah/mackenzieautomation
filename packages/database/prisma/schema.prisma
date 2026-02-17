@@ -16,6 +16,7 @@ model User {
   password      String
   firstName     String
   lastName      String
+  phone         String?
   role          UserRole  @default(USER)
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
@@ -49,6 +50,9 @@ model Intake {
   city            String?
   postcode        String?
   concerns        String    @db.Text
+  serviceType     String?
+  hearingDate     DateTime?
+  courtName       String?
   urgencyLevel    Urgency   @default(MEDIUM)
   status          IntakeStatus @default(PENDING)
   notes           String?   @db.Text
@@ -132,44 +136,52 @@ enum ReferralStatus {
   ACCEPTED
   DECLINED
   FOLLOW_UP_REQUIRED
+  CONVERTED
   CLOSED
 }
 
 // External Signals (Lead Discovery)
 model ExternalSignal {
-  id              String           @id @default(uuid())
-  userId          String
-  source          SignalSource
-  platform        String
-  content         String           @db.Text
-  url             String?
-  author          String?
-  publishedAt     DateTime?
-  confidence      Float            @default(0.5)
-  classification  SignalClassification?
-  status          SignalStatus     @default(NEW)
-  processedAt     DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                  String           @id @default(uuid())
+  userId              String?
+  platformSource      String
+  platformPostId      String?
+  platformUrl         String?
+  authorUsername      String?
+  content             String           @db.Text
+  contentHash         String?          @unique
+  postedAt            DateTime?
+  distressLevel       DistressLevel    @default(LOW)
+  hearingMentioned    Boolean          @default(false)
+  timeframeDetected   String?
+  selfRepSignal       Boolean          @default(false)
+  safeguardingKeywords String[]        @default([])
+  urgencyScore        Int              @default(0)
+  aiSummary           String?          @db.Text
+  classification      SignalClassification?
+  status              SignalStatus     @default(NEW)
+  reviewedBy          String?
+  reviewedAt          DateTime?
+  processedAt         DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   // Relations
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outreachDrafts      OutreachDraft[]
 
   @@map("external_signals")
 }
 
-enum SignalSource {
-  REDDIT
-  TWITTER
-  FACEBOOK
-  NEWS
-  FORUM
-  OTHER
+enum DistressLevel {
+  LOW
+  MEDIUM
+  URGENT
 }
 
 enum SignalClassification {
   FAMILY_NEED
-  HOUSING_CRYISIS
+  HOUSING_CRISIS
   FOOD_INSECURITY
   MENTAL_HEALTH
   CHILD_WELFARE
@@ -182,10 +194,12 @@ enum SignalClassification {
 
 enum SignalStatus {
   NEW
+  DETECTED
   REVIEWING
   APPROVED
   REJECTED
   RESPONDED
+  CONVERTED
   ARCHIVED
 }
 
@@ -217,4 +231,45 @@ model AnalyticsEvent {
   timestamp   DateTime @default(now())
 
   @@map("analytics_events")
+}
+
+// Event Log for audit trail
+model EventLog {
+  id          String   @id @default(uuid())
+  eventType   String
+  intakeId    String?
+  referralId  String?
+  signalId    String?
+  bookingId   String?
+  payload     Json?
+  createdAt   DateTime @default(now())
+
+  @@map("event_logs")
+}
+
+// Outreach Drafts for external signals
+model OutreachDraft {
+  id              String          @id @default(uuid())
+  signalId        String
+  content         String          @db.Text
+  platform        String
+  status          OutreachStatus  @default(PENDING_REVIEW)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  sentAt          DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  signal          ExternalSignal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
+
+  @@map("outreach_drafts")
+}
+
+enum OutreachStatus {
+  PENDING_REVIEW
+  APPROVED
+  EDITED
+  REJECTED
+  SENT
 }

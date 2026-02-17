@@ -1,29 +1,31 @@
-import { IsString, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ServiceType } from '@family-support/database';
 
 export class CreateReferralDto {
-  @ApiProperty({ example: 'friend@example.com' })
+  @ApiProperty({ example: 'John Smith' })
   @IsString()
-  referredEmail: string;
+  clientName: string;
+
+  @ApiPropertyOptional({ example: 'client@example.com' })
+  @IsOptional()
+  @IsString()
+  clientEmail?: string;
 
   @ApiPropertyOptional({ example: '+447123456789' })
   @IsOptional()
   @IsString()
-  referredPhone?: string;
+  clientPhone?: string;
 
-  @ApiPropertyOptional({ example: 'John Smith' })
+  @ApiProperty({ example: 'Family counseling' })
+  @IsString()
+  serviceRequested: string;
+
+  @ApiProperty({ example: 'Local Family Support Centre' })
+  @IsString()
+  referredTo: string;
+
+  @ApiPropertyOptional({ example: 'Client needs support with housing issues.' })
   @IsOptional()
   @IsString()
-  referredName?: string;
-
-  @ApiPropertyOptional({ enum: ServiceType })
-  @IsOptional()
-  @IsEnum(ServiceType)
-  serviceType?: ServiceType;
-
-  @ApiPropertyOptional({ example: 'I think this service could help you.' })
-  @IsOptional()
-  @IsString()
-  message?: string;
+  notes?: string;
 }

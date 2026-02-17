@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, DistressLevel, SignalStatus } from '@family-support/database';
+import { PrismaClient, DistressLevel, SignalStatus, OutreachStatus } from '@family-support/database';
 import { AutomationService } from '../automation/automation.service';
 import { CreateExternalSignalDto } from './dto/create-external-signal.dto';
 import { ClassifySignalDto } from './dto/classify-signal.dto';
@@ -200,7 +200,7 @@ export class ExternalSignalsService {
         take: limit,
         include: {
           outreachDrafts: {
-            where: { status: { in: ['PENDING_REVIEW', 'APPROVED', 'EDITED'] } },
+            where: { status: { in: [OutreachStatus.PENDING_REVIEW, OutreachStatus.APPROVED, OutreachStatus.EDITED] } },
           },
         },
         orderBy: [

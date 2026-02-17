@@ -25,7 +25,7 @@ export class AutomationService {
       to: intake.userId, // Will be resolved to email
       data: {
         intakeId: intake.id,
-        serviceType: intake.serviceType,
+        serviceType: intake.serviceType || 'general',
         urgencyScore: urgency.score,
       },
     }, {
@@ -39,7 +39,7 @@ export class AutomationService {
         to: intake.userId,
         data: {
           intakeId: intake.id,
-          hearingDate: intake.hearingDate,
+          hearingDate: intake.hearingDate || null,
         },
       }, {
         delay: 60 * 60 * 1000, // 1 hour delay
@@ -66,12 +66,12 @@ export class AutomationService {
         intakeId: intake.id,
         clientName: `${user.firstName} ${user.lastName}`,
         clientEmail: user.email,
-        clientPhone: user.phone,
-        serviceType: intake.serviceType,
+        clientPhone: user.phone || null,
+        serviceType: intake.serviceType || 'general',
         urgencyScore: urgency.score,
         urgencyFactors: urgency.factors,
-        hearingDate: intake.hearingDate,
-        courtName: intake.courtName,
+        hearingDate: intake.hearingDate || null,
+        courtName: intake.courtName || null,
       },
     }, {
       priority: 1,
@@ -95,13 +95,13 @@ export class AutomationService {
       data: {
         bookingId: booking.id,
         serviceType: booking.serviceType,
-        scheduledAt: booking.scheduledAt,
-        duration: booking.durationMinutes,
+        scheduledAt: booking.date,
+        duration: booking.duration,
       },
     });
 
     // Send reminder 24 hours before
-    const reminderTime = new Date(booking.scheduledAt);
+    const reminderTime = new Date(booking.date);
     reminderTime.setHours(reminderTime.getHours() - 24);
 
     if (reminderTime > new Date()) {
@@ -110,7 +110,7 @@ export class AutomationService {
         to: booking.userId,
         data: {
           bookingId: booking.id,
-          scheduledAt: booking.scheduledAt,
+          scheduledAt: booking.date,
         },
       }, {
         delay: reminderTime.getTime() - Date.now(),
@@ -121,22 +121,22 @@ export class AutomationService {
   async triggerReferralAutomation(referral: Referral) {
     await this.automationQueue.add('send-email', {
       template: 'referral-thank-you',
-      to: referral.referrerId,
+      to: referral.userId,
       data: {
         referralId: referral.id,
-        referredName: referral.referredName,
+        clientName: referral.clientName,
       },
     });
 
     // Send invitation to referred person
-    if (referral.referredEmail) {
+    if (referral.clientEmail) {
       await this.automationQueue.add('send-email', {
         template: 'referral-invitation',
-        to: referral.referredEmail,
+        to: referral.clientEmail,
         data: {
           referralId: referral.id,
-          referrerName: referral.referrerId, // Will be resolved
-          serviceType: referral.serviceType,
+          referrerUserId: referral.userId, // Will be resolved
+          serviceRequested: referral.serviceRequested,
         },
       });
     }
@@ -153,8 +153,8 @@ export class AutomationService {
         platform: signal.platformSource,
         distressLevel: signal.distressLevel,
         urgencyScore: signal.urgencyScore,
-        aiSummary: signal.aiSummary,
-        platformUrl: signal.platformUrl,
+        aiSummary: signal.aiSummary || null,
+        platformUrl: signal.platformUrl || null,
       },
     }, {
       priority: 2,
