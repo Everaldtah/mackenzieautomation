@@ -27,6 +27,7 @@ model User {
   bookings      Booking[]
   referrals     Referral[]
   externalSignals ExternalSignal[]
+  complianceLogsPerformed ComplianceLog[] @relation("ComplianceLogPerformer")
 
   @@map("users")
 }
@@ -110,6 +111,7 @@ model Intake {
   // Relations
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookings        Booking[]
+  eventLogs       EventLog[]      @relation("EventLogIntake")
 
   @@map("intakes")
 }
@@ -149,6 +151,7 @@ model Booking {
   // Relations
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   intake        Intake?       @relation(fields: [intakeId], references: [id], onDelete: SetNull)
+  eventLogs     EventLog[]    @relation("EventLogBooking")
 
   @@map("bookings")
 }
@@ -180,6 +183,7 @@ model Referral {
 
   // Relations
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventLogs         EventLog[]    @relation("EventLogReferral")
 
   @@map("referrals")
 }
@@ -224,6 +228,7 @@ model ExternalSignal {
   user                User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   outreachDrafts      OutreachDraft[]
   outreachActions     OutreachAction[]
+  eventLogs           EventLog[]       @relation("EventLogSignal")
 
   @@map("external_signals")
 }
@@ -305,6 +310,12 @@ model EventLog {
   payload     Json?
   createdAt   DateTime @default(now())
 
+  // Relations
+  intake      Intake?         @relation("EventLogIntake", fields: [intakeId], references: [id], onDelete: SetNull)
+  referral    Referral?       @relation("EventLogReferral", fields: [referralId], references: [id], onDelete: SetNull)
+  signal      ExternalSignal? @relation("EventLogSignal", fields: [signalId], references: [id], onDelete: SetNull)
+  booking     Booking?        @relation("EventLogBooking", fields: [bookingId], references: [id], onDelete: SetNull)
+
   @@map("event_logs")
 }
 
@@ -316,11 +327,15 @@ model ComplianceLog {
   entityType      String
   entityId        String
   performedBy     String
+  performedById   String?
   reason          String?
   ipAddress       String?
   userAgent       String?
   metadata        Json?
   createdAt       DateTime @default(now())
+
+  // Relations
+  performedByUser User?    @relation("ComplianceLogPerformer", fields: [performedById], references: [id], onDelete: SetNull)
 
   @@map("compliance_logs")
 }
