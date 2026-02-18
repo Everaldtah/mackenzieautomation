@@ -113,7 +113,11 @@ export class IntakesService {
 
     const intake = await prisma.intake.create({
       data: {
-        userId,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         serviceType: data.serviceType,
         urgencyScore: urgency.score,
         hearingDate: data.hearingDate ? new Date(data.hearingDate) : null,
@@ -121,7 +125,7 @@ export class IntakesService {
         contactMethod: data.contactMethod,
         archetype,
         status: IntakeStatus.PENDING,
-      },
+      } as any,
     });
 
     // Log event
