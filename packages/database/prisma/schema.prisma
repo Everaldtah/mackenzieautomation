@@ -38,9 +38,53 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum ServiceType {
+  FAMILY_MEDIATION
+  SOCIAL_WORK_ASSESSMENT
+  THERAPEUTIC_SUPPORT
+  MCKENZIE_FRIEND
+  EMERGENCY_SUPPORT
+  TRAINING_WORKSHOP
+  OTHER
+}
+
+enum ContactMethod {
+  EMAIL
+  PHONE
+  SMS
+  WHATSAPP
+  POST
+}
+
+enum ClientArchetype {
+  SELF_REP_LITIGANT
+  DISTRESSED_PARENT
+  LEGAL_ADVICE_SEEKER
+  COURT_IMMINENT
+  FINANCIAL_CONSTRAINT
+  COMPLEX_CASE
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  WAIVED
+}
+
+enum DraftStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  EDITED
+  REJECTED
+  SENT
+}
+
 // Client Intake
 model Intake {
-  id              String    @id @default(uuid())
+  id              String          @id @default(uuid())
   userId          String
   clientFirstName String
   clientLastName  String
@@ -50,19 +94,22 @@ model Intake {
   address         String?
   city            String?
   postcode        String?
-  concerns        String    @db.Text
-  serviceType     String?
+  concerns        String          @db.Text
+  serviceType     ServiceType?
+  contactMethod   ContactMethod?
   hearingDate     DateTime?
   courtName       String?
-  archetype       String?
-  urgencyLevel    Urgency   @default(MEDIUM)
-  status          IntakeStatus @default(PENDING)
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  archetype       ClientArchetype?
+  urgencyLevel    Urgency         @default(MEDIUM)
+  urgencyScore    Int             @default(0)
+  status          IntakeStatus    @default(PENDING)
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
 
   @@map("intakes")
 }
@@ -76,6 +123,7 @@ enum Urgency {
 
 enum IntakeStatus {
   PENDING
+  QUALIFIED
   ASSESSMENT
   APPROVED
   REJECTED
@@ -84,20 +132,23 @@ enum IntakeStatus {
 
 // Booking Management
 model Booking {
-  id          String        @id @default(uuid())
-  userId      String
-  clientId    String
-  serviceType String
-  date        DateTime
-  time        String
-  duration    Int           @default(60) // minutes
-  status      BookingStatus @default(SCHEDULED)
-  notes       String?       @db.Text
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String        @id @default(uuid())
+  userId        String
+  clientId      String?
+  intakeId      String?
+  serviceType   ServiceType
+  scheduledAt   DateTime
+  duration      Int           @default(60) // minutes
+  price         Decimal       @db.Decimal(10, 2) @default(0)
+  status        BookingStatus @default(SCHEDULED)
+  paymentStatus PaymentStatus @default(PENDING)
+  notes         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   // Relations
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intake        Intake?       @relation(fields: [intakeId], references: [id], onDelete: SetNull)
 
   @@map("bookings")
 }
@@ -261,6 +312,7 @@ model EventLog {
 model ComplianceLog {
   id              String   @id @default(uuid())
   action          String
+  actionType      String?
   entityType      String
   entityId        String
   performedBy     String
@@ -281,6 +333,8 @@ model OutreachDraft {
   editedContent   String?         @db.Text
   platform        String
   status          OutreachStatus  @default(PENDING_REVIEW)
+  generatedBy     String?
+  rejectionReason String?         @db.Text
   reviewedBy      String?
   reviewedAt      DateTime?
   sentAt          DateTime?
@@ -308,6 +362,7 @@ model OutreachAction {
   signalId            String
   draftId             String?
   action              String
+  actionType          String?
   outcome             String?
   notes               String?         @db.Text
   clicksDetected      Boolean         @default(false)
