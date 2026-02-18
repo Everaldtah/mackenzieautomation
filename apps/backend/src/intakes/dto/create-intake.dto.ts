@@ -49,7 +49,7 @@ export class CreateIntakeDto {
 
   @ApiProperty({ enum: ContactMethod })
   @IsEnum(ContactMethod)
-  preferredContact: ContactMethod;
+  contactMethod: ContactMethod;
 
   @ApiPropertyOptional()
   @IsOptional()

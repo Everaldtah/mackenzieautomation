@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, DraftStatus, SignalStatus } from '@family-support/database';
+import { PrismaClient, OutreachStatus, SignalStatus } from '@family-support/database';
 
 const prisma = new PrismaClient();
 
@@ -68,7 +68,7 @@ You're doing better than you think.`,
         signalId: data.signalId,
         draftContent,
         generatedBy: 'gpt-4-template-v1',
-        status: DraftStatus.PENDING_REVIEW,
+        status: OutreachStatus.PENDING_REVIEW,
       },
     });
 
@@ -91,20 +91,20 @@ You're doing better than you think.`,
       throw new Error('Draft not found');
     }
 
-    let status: DraftStatus;
+    let status: OutreachStatus;
     let finalContent: string;
 
     switch (data.action) {
       case 'approve':
-        status = DraftStatus.APPROVED;
+        status = OutreachStatus.APPROVED;
         finalContent = draft.draftContent;
         break;
       case 'edit':
-        status = DraftStatus.EDITED;
+        status = OutreachStatus.EDITED;
         finalContent = data.editedContent || draft.draftContent;
         break;
       case 'reject':
-        status = DraftStatus.REJECTED;
+        status = OutreachStatus.REJECTED;
         finalContent = '';
         break;
       default:
@@ -144,7 +144,7 @@ You're doing better than you think.`,
       throw new Error('Draft not found');
     }
 
-    if (draft.status !== DraftStatus.APPROVED && draft.status !== DraftStatus.EDITED) {
+    if (draft.status !== OutreachStatus.APPROVED && draft.status !== OutreachStatus.EDITED) {
       throw new Error('Draft must be approved before sending');
     }
 
@@ -165,7 +165,7 @@ You're doing better than you think.`,
     // Update draft status
     await prisma.outreachDraft.update({
       where: { id: draftId },
-      data: { status: DraftStatus.SENT },
+      data: { status: OutreachStatus.SENT },
     });
 
     // Update signal status
@@ -193,7 +193,7 @@ You're doing better than you think.`,
   async findAllDrafts(options: {
     page?: number;
     limit?: number;
-    status?: DraftStatus;
+    status?: OutreachStatus;
   }) {
     const { page = 1, limit = 20, status } = options;
     const skip = (page - 1) * limit;

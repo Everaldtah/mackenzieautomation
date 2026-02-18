@@ -7,7 +7,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { GenerateOutreachDto } from './dto/generate-outreach.dto';
 import { ReviewOutreachDto } from './dto/review-outreach.dto';
 import { SendOutreachDto } from './dto/send-outreach.dto';
-import { DraftStatus, UserRole } from '@family-support/database';
+import { OutreachStatus, UserRole } from '@family-support/database';
 
 @ApiTags('Outreach')
 @Controller('outreach')
@@ -39,11 +39,11 @@ export class OutreachController {
   @ApiOperation({ summary: 'List all outreach drafts' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: DraftStatus })
+  @ApiQuery({ name: 'status', required: false, enum: OutreachStatus })
   async findAllDrafts(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @Query('status') status?: DraftStatus,
+    @Query('status') status?: OutreachStatus,
   ) {
     return this.outreachService.findAllDrafts({ page, limit, status });
   }

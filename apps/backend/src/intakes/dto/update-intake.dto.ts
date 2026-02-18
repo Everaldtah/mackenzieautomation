@@ -51,7 +51,7 @@ export class UpdateIntakeDto {
   @ApiPropertyOptional({ enum: ContactMethod })
   @IsOptional()
   @IsEnum(ContactMethod)
-  preferredContact?: ContactMethod;
+  contactMethod?: ContactMethod;
 
   @ApiPropertyOptional()
   @IsOptional()

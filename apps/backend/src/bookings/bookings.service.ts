@@ -17,7 +17,7 @@ export class BookingsService {
         intakeId: data.intakeId,
         serviceType: data.serviceType,
         scheduledAt: new Date(data.scheduledAt),
-        durationMinutes: data.durationMinutes,
+        duration: data.durationMinutes,
         notes: data.notes,
         price: data.price,
         status: BookingStatus.CONFIRMED,
@@ -114,12 +114,27 @@ export class BookingsService {
   }
 
   async update(id: string, data: UpdateBookingDto) {
+    const updateData: any = {
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
+      status: data.status,
+      notes: data.notes,
+    };
+
+    if (data.durationMinutes !== undefined) {
+      updateData.duration = data.durationMinutes;
+    }
+
+    if (data.price !== undefined) {
+      updateData.price = data.price;
+    }
+
+    if (data.paymentStatus !== undefined) {
+      updateData.paymentStatus = data.paymentStatus;
+    }
+
     return prisma.booking.update({
       where: { id },
-      data: {
-        ...data,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
-      },
+      data: updateData,
     });
   }
 
