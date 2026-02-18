@@ -340,6 +340,20 @@ model ComplianceLog {
   @@map("compliance_logs")
 }
 
+// Automation Template for email/SMS templates
+model AutomationTemplate {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        String   @default("email")
+  subject     String?
+  content     String   @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("automation_templates")
+}
+
 // Outreach Drafts for external signals
 model OutreachDraft {
   id              String          @id @default(uuid())
