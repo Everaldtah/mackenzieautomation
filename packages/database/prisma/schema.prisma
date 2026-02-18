@@ -33,6 +33,7 @@ model User {
 
 enum UserRole {
   USER
+  STAFF
   ADMIN
   SUPER_ADMIN
 }
@@ -112,6 +113,7 @@ enum BookingStatus {
 model Referral {
   id                String         @id @default(uuid())
   userId            String
+  referrerId        String?
   clientName        String
   clientEmail       String?
   clientPhone       String?
@@ -169,6 +171,7 @@ model ExternalSignal {
   // Relations
   user                User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   outreachDrafts      OutreachDraft[]
+  outreachActions     OutreachAction[]
 
   @@map("external_signals")
 }
@@ -205,19 +208,23 @@ enum SignalStatus {
 
 // Service Information
 model Service {
-  id              String    @id @default(uuid())
-  name            String
-  description     String    @db.Text
-  category        String
-  contactEmail    String?
-  contactPhone    String?
-  website         String?
-  address         String?
-  city            String?
-  postcode        String?
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  name              String
+  slug              String    @unique
+  description       String    @db.Text
+  category          String
+  order             Int       @default(0)
+  contactEmail      String?
+  contactPhone      String?
+  website           String?
+  address           String?
+  city              String?
+  postcode          String?
+  isActive          Boolean   @default(true)
+  archetypeTarget   String?
+  urgencyTrigger    Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@map("services")
 }
@@ -272,4 +279,21 @@ enum OutreachStatus {
   EDITED
   REJECTED
   SENT
+}
+
+// Outreach Actions tracking
+model OutreachAction {
+  id              String          @id @default(uuid())
+  signalId        String
+  action          String
+  outcome         String?
+  notes           String?         @db.Text
+  performedBy     String
+  performedAt     DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+
+  // Relations
+  signal          ExternalSignal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
+
+  @@map("outreach_actions")
 }
