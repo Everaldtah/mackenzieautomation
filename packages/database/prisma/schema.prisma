@@ -15,7 +15,7 @@ model User {
   email         String    @unique
   password      String
   firstName     String
-  lastName      String
+  lastName     String
   phone         String?
   role          UserRole  @default(USER)
   isActive      Boolean   @default(true)
@@ -54,6 +54,7 @@ model Intake {
   serviceType     String?
   hearingDate     DateTime?
   courtName       String?
+  archetype       String?
   urgencyLevel    Urgency   @default(MEDIUM)
   status          IntakeStatus @default(PENDING)
   notes           String?   @db.Text
@@ -198,10 +199,12 @@ enum SignalClassification {
 enum SignalStatus {
   NEW
   DETECTED
+  UNDER_REVIEW
   REVIEWING
   APPROVED
   REJECTED
   RESPONDED
+  OUTREACH_SENT
   CONVERTED
   ARCHIVED
 }
@@ -254,11 +257,28 @@ model EventLog {
   @@map("event_logs")
 }
 
+// Compliance Log
+model ComplianceLog {
+  id              String   @id @default(uuid())
+  action          String
+  entityType      String
+  entityId        String
+  performedBy     String
+  reason          String?
+  ipAddress       String?
+  userAgent       String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@map("compliance_logs")
+}
+
 // Outreach Drafts for external signals
 model OutreachDraft {
   id              String          @id @default(uuid())
   signalId        String
-  content         String          @db.Text
+  draftContent    String?         @db.Text
+  editedContent   String?         @db.Text
   platform        String
   status          OutreachStatus  @default(PENDING_REVIEW)
   reviewedBy      String?
@@ -275,6 +295,7 @@ model OutreachDraft {
 
 enum OutreachStatus {
   PENDING_REVIEW
+  UNDER_REVIEW
   APPROVED
   EDITED
   REJECTED
@@ -283,17 +304,20 @@ enum OutreachStatus {
 
 // Outreach Actions tracking
 model OutreachAction {
-  id              String          @id @default(uuid())
-  signalId        String
-  action          String
-  outcome         String?
-  notes           String?         @db.Text
-  performedBy     String
-  performedAt     DateTime        @default(now())
-  createdAt       DateTime        @default(now())
+  id                  String          @id @default(uuid())
+  signalId            String
+  draftId             String?
+  action              String
+  outcome             String?
+  notes               String?         @db.Text
+  clicksDetected      Boolean         @default(false)
+  convertedToIntake   Boolean         @default(false)
+  performedBy         String
+  performedAt         DateTime        @default(now())
+  createdAt           DateTime        @default(now())
 
   // Relations
-  signal          ExternalSignal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  signal              ExternalSignal  @relation(fields: [signalId], references: [id], onDelete: Cascade)
 
   @@map("outreach_actions")
 }
