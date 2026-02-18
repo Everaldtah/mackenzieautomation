@@ -1,4 +1,4 @@
-import { Processor, OnQueueEvent, OnQueueActive } from '@nestjs/bullmq';
+import { Processor } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@family-support/database';
@@ -17,7 +17,6 @@ export class AutomationProcessor {
     }
   }
 
-  @OnQueueActive('send-email')
   async handleSendEmail(job: Job) {
     const { template, to, data } = job.data;
 
@@ -83,7 +82,6 @@ export class AutomationProcessor {
     }
   }
 
-  @Process('send-sms')
   async handleSendSms(job: Job) {
     const { to, message } = job.data;
 
@@ -103,7 +101,6 @@ export class AutomationProcessor {
     }
   }
 
-  @Process('send-urgent-alert')
   async handleUrgentAlert(job: Job) {
     const { type, to, data } = job.data;
 
@@ -162,7 +159,6 @@ Review in admin dashboard for potential outreach.
     }
   }
 
-  @Process('follow-up')
   async handleFollowUp(job: Job) {
     const { type, userId, data } = job.data;
     console.log(`Follow-up: ${type} for user ${userId}`, data);
@@ -170,7 +166,7 @@ Review in admin dashboard for potential outreach.
 
   private processTemplate(template: string, data: any): string {
     if (!template) return '';
-    
+
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return data[key] !== undefined ? String(data[key]) : match;
     });

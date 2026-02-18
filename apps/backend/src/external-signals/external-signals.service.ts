@@ -6,7 +6,7 @@ import { ClassifySignalDto } from './dto/classify-signal.dto';
 
 const prisma = new PrismaClient();
 
-interface NLPClassification {
+export interface NLPClassification {
   distressLevel: DistressLevel;
   hearingMentioned: boolean;
   timeframeDetected: string | null;

@@ -8,7 +8,7 @@ import { AutomationService } from '../automation/automation.service';
 
 const prisma = new PrismaClient();
 
-interface UrgencyResult {
+export interface UrgencyResult {
   score: number;
   factors: string[];
 }
@@ -120,7 +120,6 @@ export class IntakesService {
         courtName: data.courtName,
         contactMethod: data.contactMethod,
         archetype,
-        responses: data.responses as any,
         status: IntakeStatus.PENDING,
       },
     });
