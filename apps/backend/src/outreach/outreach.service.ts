@@ -67,7 +67,7 @@ You're doing better than you think.`,
       data: {
         signalId: data.signalId,
         draftContent,
-        generatedBy: 'gpt-4-template-v1',
+        platform: signal.platformSource,
         status: OutreachStatus.PENDING_REVIEW,
       },
     });
@@ -125,8 +125,10 @@ You're doing better than you think.`,
     // Log compliance
     await prisma.complianceLog.create({
       data: {
+        action: `outreach_${data.action}`,
         actionType: `outreach_${data.action}`,
-        description: `Outreach draft ${data.action} for signal ${draft.signalId}`,
+        entityType: 'outreach_draft',
+        entityId: data.draftId,
         performedBy: data.reviewedBy,
       },
     });
@@ -153,12 +155,13 @@ You're doing better than you think.`,
     // Create outreach action record
     const action = await prisma.outreachAction.create({
       data: {
+        signalId: draft.signalId,
         draftId: draft.id,
+        action: 'send',
         actionType: 'post_reply',
-        platform: draft.signal.platformSource,
-        platformPostId: draft.signal.platformPostId,
-        contentSent: contentToSend,
-        sentBy,
+        outcome: 'sent',
+        notes: contentToSend,
+        performedBy: sentBy,
       },
     });
 
@@ -249,8 +252,8 @@ You're doing better than you think.`,
         _count: { status: true },
       }),
       prisma.outreachAction.count(),
-      prisma.outreachAction.aggregate({
-        _sum: { clicksDetected: true },
+      prisma.outreachAction.count({
+        where: { clicksDetected: true },
       }),
       prisma.outreachAction.count({
         where: { convertedToIntake: true },
@@ -261,7 +264,7 @@ You're doing better than you think.`,
       totalDrafts,
       byStatus,
       sentActions,
-      totalClicks: totalClicks._sum.clicksDetected || 0,
+      totalClicks,
       conversions,
       conversionRate: sentActions > 0 ? (conversions / sentActions) * 100 : 0,
     };

@@ -95,13 +95,13 @@ export class AutomationService {
       data: {
         bookingId: booking.id,
         serviceType: booking.serviceType,
-        scheduledAt: booking.date,
+        scheduledAt: booking.scheduledAt,
         duration: booking.duration,
       },
     });
 
     // Send reminder 24 hours before
-    const reminderTime = new Date(booking.date);
+    const reminderTime = new Date(booking.scheduledAt);
     reminderTime.setHours(reminderTime.getHours() - 24);
 
     if (reminderTime > new Date()) {
@@ -110,7 +110,7 @@ export class AutomationService {
         to: booking.userId,
         data: {
           bookingId: booking.id,
-          scheduledAt: booking.date,
+          scheduledAt: booking.scheduledAt,
         },
       }, {
         delay: reminderTime.getTime() - Date.now(),

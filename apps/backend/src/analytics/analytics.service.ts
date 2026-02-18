@@ -135,15 +135,14 @@ export class AnalyticsService {
         _count: { distressLevel: true },
       }),
       prisma.outreachAction.aggregate({
-        _sum: { clicksDetected: true },
-        _count: { convertedToIntake: true },
+        _count: { clicksDetected: true, convertedToIntake: true },
       }),
     ]);
 
     return {
       byPlatform,
       byDistressLevel,
-      outreachClicks: conversionStats._sum.clicksDetected || 0,
+      outreachClicks: conversionStats._count.clicksDetected || 0,
       outreachConversions: conversionStats._count.convertedToIntake || 0,
     };
   }

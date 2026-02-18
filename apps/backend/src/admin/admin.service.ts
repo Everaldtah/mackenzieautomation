@@ -95,7 +95,7 @@ export class AdminService {
         skip,
         take: limit,
         include: {
-          user: {
+          performedByUser: {
             select: {
               firstName: true,
               lastName: true,
@@ -103,7 +103,7 @@ export class AdminService {
             },
           },
         },
-        orderBy: { performedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.complianceLog.count(),
     ]);

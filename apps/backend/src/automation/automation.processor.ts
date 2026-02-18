@@ -1,4 +1,4 @@
-import { Processor, Process } from '@nestjs/bullmq';
+import { Processor, OnQueueEvent, OnQueueActive } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@family-support/database';
@@ -17,7 +17,7 @@ export class AutomationProcessor {
     }
   }
 
-  @Process('send-email')
+  @OnQueueActive('send-email')
   async handleSendEmail(job: Job) {
     const { template, to, data } = job.data;
 

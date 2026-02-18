@@ -42,7 +42,7 @@ export class ReferralsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user referrals' })
   async getMyReferrals(@Request() req) {
-    return this.referralsService.findAll({ referrerId: req.user.sub });
+    return this.referralsService.findAll({ userId: req.user.sub });
   }
 
   @Get('stats')

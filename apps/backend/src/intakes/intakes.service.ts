@@ -78,30 +78,30 @@ export class IntakesService {
       const hearingDate = new Date(data.hearingDate);
       const now = new Date();
       const hoursUntilHearing = (hearingDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      
+
       if (hoursUntilHearing <= 48) {
-        return ClientArchetype.LAST_MINUTE_EMERGENCY;
+        return ClientArchetype.COURT_IMMINENT;
       }
     }
 
     // Domestic allegation case
     if (data.safeguardingConcerns) {
-      return ClientArchetype.DOMESTIC_ALLEGATION_CASE;
+      return ClientArchetype.COMPLEX_CASE;
     }
 
     // Sudden court parent: no previous mediation, first time
     if (!data.previousMediation && data.hearingDate) {
-      return ClientArchetype.SUDDEN_COURT_PARENT;
+      return ClientArchetype.SELF_REP_LITIGANT;
     }
 
     // Self-representing father (detected from responses or archetype selection)
-    if (data.archetype === ClientArchetype.SELF_REPRESENTING_FATHER) {
-      return ClientArchetype.SELF_REPRESENTING_FATHER;
+    if (data.archetype === ClientArchetype.SELF_REP_LITIGANT) {
+      return ClientArchetype.SELF_REP_LITIGANT;
     }
 
     // Ongoing litigant: has previous mediation experience
     if (data.previousMediation) {
-      return ClientArchetype.ONGOING_LITIGANT;
+      return ClientArchetype.COMPLEX_CASE;
     }
 
     return data.archetype;
@@ -118,14 +118,7 @@ export class IntakesService {
         urgencyScore: urgency.score,
         hearingDate: data.hearingDate ? new Date(data.hearingDate) : null,
         courtName: data.courtName,
-        caseNumber: data.caseNumber,
-        childrenInvolved: data.childrenInvolved,
-        childrenCount: data.childrenCount,
-        safeguardingConcerns: data.safeguardingConcerns,
-        previousMediation: data.previousMediation,
-        legalAidEligible: data.legalAidEligible,
-        preferredContact: data.preferredContact,
-        availabilityNotes: data.availabilityNotes,
+        contactMethod: data.contactMethod,
         archetype,
         responses: data.responses as any,
         status: IntakeStatus.PENDING,
